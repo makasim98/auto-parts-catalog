@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { UserRoles } from '../enum/role.enum';
+import { Role } from '@prisma/client';
 
 export class CreateUserDto {
   @IsString()
@@ -9,6 +9,6 @@ export class CreateUserDto {
   @IsEmail()
   readonly email: string;
 
-  @IsEnum(UserRoles, { message: 'Valid role required' })
-  readonly role: UserRoles;
+  @IsEnum(Role, { message: 'Valid role required' })
+  readonly role: Role;
 }

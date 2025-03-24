@@ -1,58 +1,47 @@
 // eslint-disable-next-line prettier/prettier
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseEnumPipe,
-  Patch,
-  Post,
-  Query,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseEnumPipe, ParseIntPipe, Patch, Post, Query, ValidationPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { Role } from '@prisma/client';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserRoles } from './enum/role.enum';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
-  // GET /users or /users?role=value
-  @Get()
-  getAll(
-    @Query('role', new ParseEnumPipe(UserRoles, { optional: true }))
-    role?: UserRoles,
-  ) {
-    return this.userService.findAll(role);
-  }
-
-  // GET /users/:id
-  @Get(':id')
-  getById(@Param('id') id: string) {
-    return this.userService.findById(id);
-  }
-
-  // POST /users
   @Post()
   create(@Body(ValidationPipe) createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
-  // PATCH /users/:id
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body(ValidationPipe) userUpdate: UpdateUserDto,
+  @Get()
+  findAll(
+    @Query('role', new ParseEnumPipe(Role, { optional: true }))
+    role?: Role,
   ) {
-    return this.userService.update(id, userUpdate);
+    return this.userService.findAll(role);
   }
 
-  // DELETE /users/:id
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const user = await this.userService.findOne(id);
+    if (user) {
+      return user;
+    } else {
+      throw new NotFoundException(`No user found with provides ID(${id})`);
+    }
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+  ) {
+    return this.userService.update(id, updateUserDto);
+  }
+
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    return this.userService.delete(id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.remove(id);
   }
 }
